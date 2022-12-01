@@ -10,12 +10,31 @@ public class Solution {
 
     public static void main(String[] args) {
         Solution soln = new Solution();
+        System.out.println("Day 1 P1 start: ");
         soln.readInput()
             .map(soln::findMaxCal)
-            .ifPresentOrElse(System.out::println, () -> System.out.println("bad input"));
+            .ifPresentOrElse(
+                i -> System.out.println("The elf with the most cals has " + i + " cals."),
+                () -> System.out.println("bad input")
+            );
+        System.out.println("\nDay1 P2 start: ");
+        soln.readInput()
+            .map(soln::findTopThree)
+            .ifPresentOrElse(
+                i -> System.out.println("The 3 elves with the most cals have " + i + " cals combined."),
+                () -> System.out.println("bad input")
+            );
     }
 
-    public Integer findMaxCal(List<List<Integer>> elfCalories) {
+    private int findTopThree(List<List<Integer>> elfCalories) {
+        return elfCalories.stream()
+            .mapToInt(elf -> elf.stream().mapToInt(i -> i).sum())
+            .sorted()
+            .skip(elfCalories.size() - 3)
+            .sum();
+    }
+
+    public int findMaxCal(List<List<Integer>> elfCalories) {
         return elfCalories.stream()
             .mapToInt(elf -> elf.stream().mapToInt(i -> i).sum())
             .max()
