@@ -19,6 +19,14 @@ public class Solution {
                 () -> System.out.println("Bad input")
             );
 
+        System.out.println("Day 4 P2");
+        s.parseInput()
+            .map(s::part2)
+            .ifPresentOrElse(
+                sum -> System.out.println("There are " + sum + " pairs that partially overlap"),
+                () -> System.out.println("Bad input")
+            );
+
     }
 
     private record Range(int start, int end) {}
@@ -29,6 +37,26 @@ public class Solution {
         return (int) pairs.stream()
             .filter(this::fullyOverlap)
             .count();
+    }
+
+    private int part2(List<Pair> pairs) {
+        return (int) pairs.stream()
+            .filter(this::partiallyOverlap)
+            .count();
+    }
+
+    private boolean partiallyOverlap(Pair pair) {
+        Range a = pair.a();
+        Range b = pair.b();
+        //1-1,1-89
+        if (a.start() == b.start() || a.end() == b.end()) {
+            return true;
+        }
+        if (a.start() < b.start()) {
+            return a.end() >= b.start();
+        } else {
+            return b.end() >= a.start();
+        }
     }
     private boolean fullyOverlap(Pair pair) {
         Range a = pair.a();
