@@ -18,8 +18,16 @@ public class Solution {
 
     public static void main(String[] args) {
         Solution s = new Solution(new DockParser(), new MovesParser());
+        System.out.println("Part 1");
         s.parseInput()
             .map(s::part1)
+            .ifPresentOrElse(
+                t -> System.out.println("The tops are: " + t),
+                () -> System.out.println("Bad input")
+            );
+        System.out.println("Part 2");
+        s.parseInput()
+            .map(s::part2)
             .ifPresentOrElse(
                 t -> System.out.println("The tops are: " + t),
                 () -> System.out.println("Bad input")
@@ -30,6 +38,13 @@ public class Solution {
 
     private String part1(Input in) {
         in.moves().forEach(in.dock()::execute);
+        return in.dock().getTopOfEachStack().stream()
+            .map(Object::toString)
+            .collect(Collectors.joining());
+    }
+
+    private String part2(Input in) {
+        in.moves().forEach(in.dock()::executeAllAtOnce);
         return in.dock().getTopOfEachStack().stream()
             .map(Object::toString)
             .collect(Collectors.joining());

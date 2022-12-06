@@ -24,4 +24,16 @@ public class Dock {
             places.get(move.to()).push(toMove);
         }
     }
+
+    public void executeAllAtOnce(Move move) {
+        Stack<Character> tempStack = new Stack<>();
+        for (int i = 0; i < move.num(); i++) {
+            Character toMove = places.get(move.from()).pop();
+            tempStack.push(toMove);
+        }
+
+        while (!tempStack.isEmpty()) {
+            places.get(move.to()).push(tempStack.pop());
+        }
+    }
 }
