@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public class Solution {
 
@@ -15,6 +16,12 @@ public class Solution {
         System.out.println("Day 7 Part 1");
         s.parseInput().map(s::part1).ifPresentOrElse(
             i -> System.out.println("The sum of all dirs with size <= 100000 is: " + i),
+            () -> System.out.println("Bad input")
+        );
+
+        System.out.println("Day 7 Part 2");
+        s.parseInput().map(s::part2).ifPresentOrElse(
+            i -> System.out.println("The smallest big dir is: " + i),
             () -> System.out.println("Bad input")
         );
     }
@@ -26,20 +33,29 @@ public class Solution {
 
     public int part1(Node node) {
         return switch (node) {
-            case Node.TreeNode n -> {
-                if (n.getSize() <= 100000) {
-                    yield n.getSize() + n.getChildren().values().stream()
-                        .filter(c -> !c.isTerminal())
-                        .mapToInt(this::part1)
-                        .sum();
-                } else {
-                    yield n.getChildren().values().stream()
-                        .filter(c -> !c.isTerminal())
-                        .mapToInt(this::part1)
-                        .sum();
-                }
-            }
+            case Node.TreeNode n -> (n.getSize() <= 100000 ? n.getSize() : 0) +
+                n.getChildren().values().stream()
+                    .mapToInt(this::part1)
+                    .sum();
             case Node.LeafNode ignored -> 0;
+        };
+    }
+
+    public int part2(Node node) {
+        return findAllDirs(node)
+            .mapToInt(Node::getSize)
+            .filter(i -> i > node.getSize() - 40000000)
+            .min()
+            .orElseThrow();
+    }
+
+    private Stream<Node.TreeNode> findAllDirs(Node node) {
+        return switch (node) {
+            case Node.LeafNode ignored -> Stream.empty();
+            case Node.TreeNode t -> Stream.concat(
+                Stream.of(t),
+                t.getChildren().values().stream().flatMap(this::findAllDirs)
+            );
         };
     }
 
