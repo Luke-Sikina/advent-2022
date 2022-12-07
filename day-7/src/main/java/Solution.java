@@ -33,7 +33,7 @@ public class Solution {
 
     public int part1(Node node) {
         return switch (node) {
-            case Node.TreeNode n -> (n.getSize() <= 100000 ? n.getSize() : 0) +
+            case Node.TreeNode n -> (n.size() <= 100000 ? n.size() : 0) +
                 n.getChildren().values().stream()
                     .mapToInt(this::part1)
                     .sum();
@@ -43,8 +43,8 @@ public class Solution {
 
     public int part2(Node node) {
         return findAllDirs(node)
-            .mapToInt(Node::getSize)
-            .filter(i -> i > node.getSize() - 40000000)
+            .mapToInt(Node::size)
+            .filter(i -> i > node.size() - 40000000)
             .min()
             .orElseThrow();
     }
@@ -65,14 +65,12 @@ public class Solution {
 
         for (int i = 0; i < in.size(); i++) {
             String line = in.get(i);
-            if (isCommand(line)) {
-                Matcher cd = cdRegex.matcher(line);
-                Matcher ls = lsRegex.matcher(line);
-                if (cd.find()) {
-                    current = cd(root, current, cd.group(1));
-                } else if (ls.find()) {
-                    i = ls(current, in, i);
-                }
+            Matcher cd = cdRegex.matcher(line);
+            Matcher ls = lsRegex.matcher(line);
+            if (cd.find()) {
+                current = cd(root, current, cd.group(1));
+            } else if (ls.find()) {
+                i = ls(current, in, i);
             }
         }
 
@@ -83,17 +81,17 @@ public class Solution {
         while (i < lines.size() - 1) {
             i++;
             String line = lines.get(i);
-            if (isCommand(line)) {
+            if (line.startsWith("$ ")) {
                 return i - 1;
             }
             Matcher dir = dirRegex.matcher(line);
             Matcher file = fileRegex.matcher(line);
             if (dir.find() && !current.getChildren().containsKey(dir.group(1))) {
                 Node.TreeNode toAdd = new Node.TreeNode(current, dir.group(1));
-                current.getChildren().put(toAdd.getName(), toAdd);
-            } else if (file.find()) {
+                current.getChildren().put(toAdd.name(), toAdd);
+            } else if (file.find() && current instanceof Node.TreeNode n) {
                 Node.LeafNode toAdd = new Node.LeafNode(current, Integer.parseInt(file.group(1)), file.group(2));
-                current.getChildren().put(toAdd.getName(), toAdd);
+                n.addChild(toAdd);
             }
         }
         return i;
@@ -102,13 +100,9 @@ public class Solution {
     private Node cd(Node.TreeNode root, Node current, String dir) {
         return switch (dir) {
             case "/" -> root;
-            case ".." -> current.getParent();
+            case ".." -> current.parent();
             default -> current.getChildren().get(dir);
         };
-    }
-
-    private boolean isCommand(String line) {
-        return line.startsWith("$ ");
     }
 
     private Optional<Node.TreeNode> parseInput() {
