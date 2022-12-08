@@ -16,18 +16,26 @@ public class Solution {
                 i -> System.out.println("Visible tree count: " + i),
                 () -> System.out.println("Bad input")
             );
+
+        System.out.println("Day 8 part w");
+        s.parseInput()
+            .map(s::part2)
+            .ifPresentOrElse(
+                i -> System.out.println("Max vis score: " + i),
+                () -> System.out.println("Bad input")
+            );
     }
     
     private int part1(Grid grid) {
         Set<Point> visibleTrees = new HashSet<>();
         for (int x = 0; x < grid.x(); x++) {
-            List<Point> column = grid.column(x);
+            List<PointWithVisibility> column = grid.column(x);
             findVisible(visibleTrees, column);
             Collections.reverse(column);
             findVisible(visibleTrees, column);
         }
         for (int y = grid.y() - 1; y >= 0; y--) {
-            List<Point> row = grid.row(y);
+            List<PointWithVisibility> row = grid.row(y);
             findVisible(visibleTrees, row);
             Collections.reverse(row);
             findVisible(visibleTrees, row);
@@ -36,12 +44,52 @@ public class Solution {
         return visibleTrees.size();
     }
 
-    private static void findVisible(Set<Point> visibleTrees, List<Point> points) {
+    private int part2(Grid grid) {
+        for (int x = 0; x < grid.x(); x++) {
+            PointWithVisibility prev = new PointWithVisibility(new Point(-1, -1, Integer.MAX_VALUE));
+            List<PointWithVisibility> column = grid.column(x);
+            for (PointWithVisibility current : column) {
+                current.updateYNeg(prev);
+                prev = current;
+            }
+
+            Collections.reverse(column);
+            prev = new PointWithVisibility(new Point(-1, -1, Integer.MAX_VALUE));
+            for (PointWithVisibility current : column) {
+                current.updateYPos(prev);
+                prev = current;
+            }
+        }
+
+        for (int y = grid.y() - 1; y >= 0; y--) {
+            PointWithVisibility prev = new PointWithVisibility(new Point(-1, -1, Integer.MAX_VALUE));
+            List<PointWithVisibility> row = grid.row(y);
+            for (PointWithVisibility current : row) {
+                current.updateXNeg(prev);
+                prev = current;
+            }
+
+            Collections.reverse(row);
+            prev = new PointWithVisibility(new Point(-1, -1, Integer.MAX_VALUE));
+            for (PointWithVisibility current : row) {
+                current.updateXPos(prev);
+                prev = current;
+            }
+        }
+
+        return Arrays.stream(grid.points())
+            .flatMap(Arrays::stream)
+            .mapToInt(PointWithVisibility::calcScore)
+            .max()
+            .orElse(0);
+    }
+
+    private static void findVisible(Set<Point> visibleTrees, List<PointWithVisibility> points) {
         int maxHeight = -1;
-        for (Point point : points) {
-            if (point.height() > maxHeight) {
-                maxHeight = point.height();
-                visibleTrees.add(point);
+        for (PointWithVisibility point : points) {
+            if (point.point().height() > maxHeight) {
+                maxHeight = point.point().height();
+                visibleTrees.add(point.point());
             }
         }
     }
@@ -51,12 +99,12 @@ public class Solution {
             int[][] rawGrid = readFromInputStream(inputStream).stream()
                 .map(c -> c.chars().boxed().mapToInt(ch -> Integer.parseInt("" + (char) ch.intValue())).toArray())
                 .toArray(int[][]::new);
-            Point[][] grid = new Point[rawGrid.length][];
+            PointWithVisibility[][] grid = new PointWithVisibility[rawGrid.length][];
             for (int x = 0; x < rawGrid.length; x++) {
                 int[] row = rawGrid[x];
-                grid[x] = new Point[row.length];
+                grid[x] = new PointWithVisibility[row.length];
                 for (int y = 0; y < row.length; y++) {
-                    grid[x][y] = new Point(x, y, row[y]);
+                    grid[x][y] = new PointWithVisibility(new Point(x, y, row[y]));
                 }
             }
             
